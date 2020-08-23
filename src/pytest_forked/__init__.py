@@ -64,7 +64,11 @@ def forked_run_report(item):
             os._exit(EXITSTATUS_TESTEXIT)
         return marshal.dumps([serialize_report(x) for x in reports])
 
-    ff = py.process.ForkedFunc(runforked)
+    try:
+        ff = py.process.ForkedFunc(runforked)
+    except BlockingIOError:
+        # Crashing before it started is still crashing
+        return [report_process_crash(item, result)]
     result = ff.waitfinish()
     if result.retval is not None:
         report_dumps = marshal.loads(result.retval)
