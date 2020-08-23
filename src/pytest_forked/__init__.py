@@ -50,6 +50,14 @@ def pytest_runtest_protocol(item):
         return True
 
 
+class _DummyResult:
+    """Dummy report object so I can report a crash."""
+    
+    def __init__(self):
+        self.out = ""
+        self.err = ""
+
+
 def forked_run_report(item):
     # for now, we run setup/teardown in the subprocess
     # XXX optionally allow sharing of setup/teardown
@@ -68,7 +76,7 @@ def forked_run_report(item):
         ff = py.process.ForkedFunc(runforked)
     except BlockingIOError:
         # Crashing before it started is still crashing
-        return [report_process_crash(item, result)]
+        return [report_process_crash(item, _DummyResult())]
     result = ff.waitfinish()
     if result.retval is not None:
         report_dumps = marshal.loads(result.retval)
